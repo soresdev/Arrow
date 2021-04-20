@@ -1,0 +1,24 @@
+database:
+  host: ''
+  username: ''
+  password: ''
+  name: ''
+  collection: ''
+scoreboard:
+  title: 'Arrow'
+combat:
+  timer: 25
+  pearl: 16
+themes:
+  default:
+    primary: '&6&l'
+    secondary: '&e'
+    value: '&r'
+  test:
+    primary: '&2&l'
+    secondary: '&a'
+    value: '&r'
+  test2:
+    primary: '&9&l'
+    secondary: '&b'
+    value: '&r'

@@ -1,0 +1,5 @@
+name: Arrow
+main: me.sores.arrow.Arrow
+version: 1.0
+author: sores
+commands:
