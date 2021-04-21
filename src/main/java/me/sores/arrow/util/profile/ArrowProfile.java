@@ -63,6 +63,7 @@ public class ArrowProfile extends PlayerProfile {
         setKills(0);
         setDeaths(0);
         resetStreak();
+        setPreviousKit(null);
 
         ProfileHandler.getInstance().save(this);
     }
@@ -89,7 +90,18 @@ public class ArrowProfile extends PlayerProfile {
 
         if(fetched != null){
             try{
-                //load their data
+
+                if(fetched.containsKey("coins")) coins = fetched.getInteger("coins");
+                if(fetched.containsKey("kills")) kills = fetched.getInteger("kills");
+                if(fetched.containsKey("deaths")) deaths = fetched.getInteger("deaths");
+                if(fetched.containsKey("streak")) streak = fetched.getInteger("streak");
+                if(fetched.containsKey("previouskit")) previousKit = fetched.getString("previouskit");
+
+                if(fetched.containsKey("scoreboard")) scoreboard = fetched.getBoolean("scoreboard");
+                if(fetched.containsKey("blood_effect")) bloodEffect = fetched.getBoolean("blood_effect");
+                if(fetched.containsKey("healing_item")) healingItem = HealingItem.valueOf(fetched.getString("healing_item"));
+                if(fetched.containsKey("theme")) selectedTheme = ArrowConfig.getTheme(fetched.getString("theme"));
+
             }catch (Exception ex){
                 StringUtil.log("&c[Arrow] Data load failure for " + getName() + "'s profile.");
                 ex.printStackTrace();
@@ -104,6 +116,16 @@ public class ArrowProfile extends PlayerProfile {
         Document document = new Document("_id", getID().toString());
 
         document.put("name", getName());
+        document.put("coins", coins);
+        document.put("kills", kills);
+        document.put("deaths", deaths);
+        document.put("ratio", calculateRatio());
+        document.put("streak", streak);
+        document.put("previouskit", previousKit);
+        document.put("healing_item", healingItem.toString());
+        document.put("scoreboard", scoreboard);
+        document.put("blood_effect", bloodEffect);
+        document.put("theme", selectedTheme.getIndex());
 
         return document;
     }
@@ -219,6 +241,14 @@ public class ArrowProfile extends PlayerProfile {
 
     public void setHealingItem(HealingItem healingItem) {
         this.healingItem = healingItem;
+    }
+
+    public Theme getSelectedTheme() {
+        return selectedTheme;
+    }
+
+    public void setSelectedTheme(Theme selectedTheme) {
+        this.selectedTheme = selectedTheme;
     }
 
     /**

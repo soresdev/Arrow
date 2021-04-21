@@ -2,6 +2,7 @@ package me.sores.arrow.kit.abilities;
 
 import me.sores.arrow.kit.Ability;
 import me.sores.arrow.kit.AbilityType;
+import me.sores.impulse.util.StringUtil;
 import me.sores.impulse.util.json.JSONObject;
 import org.bukkit.command.CommandSender;
 
@@ -18,7 +19,15 @@ public class Ability_switcher extends Ability {
 
     @Override
     public String[] getInfo() {
-        return null;
+        return new String[] {
+                StringUtil.color("&8&m------------------------------------------------"),
+                StringUtil.color("&6&lAbility Info: "),
+                StringUtil.color("&eName: &r" + getType().toString()),
+                StringUtil.color("&eDisplay: &r" + getType().getDisplay()),
+                StringUtil.color("&eCooldown: &r" + (getCooldown() == -1 ? "None" : getCooldown())),
+                StringUtil.color("&8&m------------------------------------------------"),
+
+        };
     }
 
     @Override

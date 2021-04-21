@@ -1,6 +1,6 @@
 package me.sores.arrow;
 
-import me.sores.arrow.commands.Command_arrowreload;
+import me.sores.arrow.commands.*;
 import me.sores.arrow.config.AbilityConfig;
 import me.sores.arrow.config.ArrowConfig;
 import me.sores.arrow.config.KitsConfig;
@@ -65,6 +65,14 @@ public class Init extends AbstractInit {
     @Override
     public void registerCommands() {
         registerCommand("arrowreload", new Command_arrowreload());
+        registerCommand("ability", new Command_ability());
+        registerCommand("build", new Command_build());
+        registerCommand("sk", new Command_sk());
+        registerCommand("kit", new Command_kit());
+        registerCommand("theme", new Command_theme());
+        registerCommand("settings", new Command_settings());
+        registerCommand("statchange", new Command_statchange());
+        registerCommand("scoreboard", new Command_scoreboard());
     }
 
     @Override

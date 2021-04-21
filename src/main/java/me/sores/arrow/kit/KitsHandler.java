@@ -52,7 +52,7 @@ public class KitsHandler extends Handler {
     public void load(){
         ConfigFile kitsConfig = KitsConfig.getFile();
 
-        for(String key : kitsConfig.getConfigurationSection("kits").getKeys(false)){
+        for(String key : kitsConfig.getConfigurationSection("kits").getKeys(false)){ //needs a null check
             String path = "kits." + key;
 
             Kit kit = new Kit(key);

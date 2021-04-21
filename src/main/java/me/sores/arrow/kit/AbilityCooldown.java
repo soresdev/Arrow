@@ -31,6 +31,11 @@ public class AbilityCooldown extends BukkitRunnable {
 
     public void cancel(){
         super.cancel();
+
+        if(AbilityHandler.getInstance().isOnCooldown(player)){
+            AbilityHandler.getInstance().getCooldowns().remove(player.getUniqueId());
+        }
+
         this.cancelled = true;
     }
 

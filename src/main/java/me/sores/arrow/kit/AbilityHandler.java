@@ -31,12 +31,25 @@ public class AbilityHandler extends Handler {
         abilities = Lists.newArrayList();
         cooldowns = Maps.newHashMap();
 
+        initAbilities();
+
         load();
     }
 
     @Override
     public void unload() {
+        cooldowns.clear();
         abilities.clear();
+    }
+
+    public void initAbilities(){
+        try{
+            for(AbilityType type : AbilityType.values()){
+                type.init();
+            }
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
     }
 
     public void registerAbility(Ability ability){
@@ -45,6 +58,10 @@ public class AbilityHandler extends Handler {
 
     public void addCooldown(Player player, AbilityCooldown cooldown){
         cooldowns.put(player.getUniqueId(), cooldown);
+    }
+
+    public long getCooldownTime(Player player){
+        return cooldowns.get(player.getUniqueId()).getTime();
     }
 
     public boolean isOnCooldown(Player player){

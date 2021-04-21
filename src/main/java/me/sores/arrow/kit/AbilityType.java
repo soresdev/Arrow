@@ -19,6 +19,10 @@ public enum AbilityType {
         this.display = display;
     }
 
+    public void init() throws Exception {
+        getClazz().newInstance();
+    }
+
     public static String toPrettyList(){
         StringBuilder builder = new StringBuilder();
 
@@ -36,4 +40,9 @@ public enum AbilityType {
     public String getDisplay() {
         return display;
     }
+
+    public Class<? extends Ability> getClazz() {
+        return clazz;
+    }
+
 }

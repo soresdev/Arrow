@@ -4,6 +4,7 @@ import me.sores.arrow.util.ArrowUtil;
 import me.sores.arrow.util.profile.ArrowProfile;
 import me.sores.arrow.util.profile.ProfileHandler;
 import me.sores.impulse.util.MessageUtil;
+import me.sores.impulse.util.serialization.InventorySerialization;
 import me.sores.impulse.util.serialization.PotionEffectSerialization;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -69,6 +70,7 @@ public class Kit {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+        KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".display", displayName);
     }
 
     public String getPotions() {
@@ -77,6 +79,7 @@ public class Kit {
 
     public void setPotions(String potions) {
         this.potions = potions;
+        KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".potions", potions);
     }
 
     public Material getIcon() {
@@ -85,6 +88,7 @@ public class Kit {
 
     public void setIcon(Material icon) {
         this.icon = icon;
+        KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".icon", icon.toString());
     }
 
     public Loadout getLoadout() {
@@ -93,6 +97,8 @@ public class Kit {
 
     public void setLoadout(Loadout loadout) {
         this.loadout = loadout;
+        KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".loadout.armor", InventorySerialization.serializeInventory(loadout.getArmor()));
+        KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".loadout.contents", InventorySerialization.serializeInventory(loadout.getContents()));
     }
 
     public boolean isEnabled() {
@@ -101,6 +107,7 @@ public class Kit {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+        KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".enabled", enabled);
     }
 
     public boolean isPub() {
@@ -109,6 +116,7 @@ public class Kit {
 
     public void setPub(boolean pub) {
         this.pub = pub;
+        KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".public", pub);
     }
 
     public Ability getRegisteredAbility() {
@@ -117,6 +125,8 @@ public class Kit {
 
     public void setRegisteredAbility(Ability registeredAbility) {
         this.registeredAbility = registeredAbility;
+        if(registeredAbility == null) KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".ability", null);
+        KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".ability", registeredAbility.getType().toString());
     }
 
 }

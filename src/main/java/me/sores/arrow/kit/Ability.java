@@ -1,12 +1,15 @@
 package me.sores.arrow.kit;
 
+import com.google.common.collect.Lists;
 import me.sores.arrow.Arrow;
+import me.sores.arrow.kit.wrapper.WrapperItem;
 import me.sores.arrow.util.IChange;
 import me.sores.impulse.util.MessageUtil;
 import me.sores.impulse.util.serialization.interf.JsonSerializable;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -56,6 +59,22 @@ public abstract class Ability implements JsonSerializable, IChange {
 
             AbilityHandler.getInstance().getCooldowns().remove(player.getUniqueId());
         }
+    }
+
+    public List<Class<? extends WrapperItem>> fetchWrapperItems(){
+        if(getClass().getInterfaces().length > 0){
+            List<Class<? extends WrapperItem>> items = Lists.newArrayList();
+
+            for(Class<?> wrapper : getClass().getInterfaces()){
+                for(Class<?> a : wrapper.getInterfaces()){
+                    if(a == WrapperItem.class) items.add((Class<? extends WrapperItem>) wrapper);
+                }
+            }
+
+            return items;
+        }
+
+        return null;
     }
 
     public long getCooldown() {
