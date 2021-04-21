@@ -29,7 +29,7 @@ public class ArrowUtil {
     public static DecimalFormat decimalFormat = new DecimalFormat("0.0#"), combatFormat = new DecimalFormat("0.0");
     public static Random RAND = new Random();
 
-    public static String SCOREBOARD_SPACER = "&8&m" + StringUtils.repeat("-", 32), BOUND_LORE = StringUtil.color("&4Bound");
+    public static String SCOREBOARD_SPACER = "&8&m" + StringUtils.repeat("-", 24), BOUND_LORE = StringUtil.color("&4Bound");
 
     public static void skipDeathScreen(final Player player){
         skipDeathScreen(player, null);

@@ -83,8 +83,6 @@ public class Command_ability extends BaseCommand {
             case "list":{
                 MessageUtil.message(player, ChatColor.GOLD + "Ability Types: ");
                 MessageUtil.message(player, ChatColor.YELLOW + AbilityType.toPrettyList());
-
-                MessageUtil.message(PlayerUtil.getOnlinePlayers(), String.valueOf(AbilityHandler.getInstance().getAbilities().size()));
                 break;
             }
 

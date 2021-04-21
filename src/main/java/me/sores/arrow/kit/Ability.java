@@ -4,6 +4,9 @@ import com.google.common.collect.Lists;
 import me.sores.arrow.Arrow;
 import me.sores.arrow.kit.wrapper.WrapperItem;
 import me.sores.arrow.util.IChange;
+import me.sores.arrow.util.region.Region;
+import me.sores.arrow.util.region.RegionHandler;
+import me.sores.arrow.util.region.RegionType;
 import me.sores.impulse.util.MessageUtil;
 import me.sores.impulse.util.serialization.interf.JsonSerializable;
 import org.bukkit.ChatColor;
@@ -28,6 +31,12 @@ public abstract class Ability implements JsonSerializable, IChange {
 
     public void register(){
         AbilityHandler.getInstance().registerAbility(this);
+    }
+
+    public boolean canPerform(Player player){ //base this off player state instead todo
+        Region region = RegionHandler.getInstance().getRegion(player.getLocation());
+
+        return region == null || region.isPvp() && region.isAbilities() && region.getType() != RegionType.SPAWN;
     }
 
     public void perform(Player player, Ability ability){

@@ -4,6 +4,7 @@ import me.sores.arrow.commands.*;
 import me.sores.arrow.config.AbilityConfig;
 import me.sores.arrow.config.ArrowConfig;
 import me.sores.arrow.config.KitsConfig;
+import me.sores.arrow.config.RegionsConfig;
 import me.sores.arrow.kit.AbilityHandler;
 import me.sores.arrow.kit.KitsHandler;
 import me.sores.arrow.listener.Listener_kitlistener;
@@ -11,6 +12,7 @@ import me.sores.arrow.listener.Listener_playerlistener;
 import me.sores.arrow.listener.Listener_worldlistener;
 import me.sores.arrow.util.ImpulseHook;
 import me.sores.arrow.util.profile.ProfileHandler;
+import me.sores.arrow.util.region.RegionHandler;
 import me.sores.arrow.util.scoreboard.BoardHandler;
 import me.sores.impulse.util.StringUtil;
 import me.sores.impulse.util.abstr.AbstractInit;
@@ -49,11 +51,13 @@ public class Init extends AbstractInit {
 
         new KitsConfig();
         new AbilityConfig();
+        new RegionsConfig();
 
         initHandler(new ProfileHandler(), true);
         initHandler(new BoardHandler(), false);
         initHandler(new AbilityHandler(), false);
         initHandler(new KitsHandler(), false);
+        initHandler(new RegionHandler(), true);
         
     }
 
@@ -73,6 +77,7 @@ public class Init extends AbstractInit {
         registerCommand("settings", new Command_settings());
         registerCommand("statchange", new Command_statchange());
         registerCommand("scoreboard", new Command_scoreboard());
+        registerCommand("region", new Command_region());
     }
 
     @Override

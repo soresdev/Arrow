@@ -85,7 +85,7 @@ public class ProfileHandler extends Handler {
             PlayerUtil.gotoSpawn(player);
             ArrowUtil.resetPlayer(player);
 
-//            if(profile.hasKit()) profile.clearKit(player); todo
+            if(profile.hasKit()) profile.clearKit(player);
             if(!profile.isScoreboard()) profile.hideScoreboard();
         }, 2L);
     }

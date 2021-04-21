@@ -59,12 +59,15 @@ public class Ability_fisherman extends Ability implements IFish, IProjectileLaun
         if(player.getItemInHand() == null || player.getItemInHand().getType() != Material.FISHING_ROD) return;
 
         if(event.getCaught() != null && event.getCaught() instanceof Player){
+            if(!canPerform(player)){
+                MessageUtil.message(player, ChatColor.RED + "You cannot use that ability here.");
+                return;
+            }
+
             if(AbilityHandler.getInstance().isOnCooldown(player)){
                 sendCooldownMessage(player, this, AbilityHandler.getInstance().getCooldownTime(player));
                 return;
             }
-
-            //check perform here
 
             if(!LocationUtil.hasAnyBlockUnder(player, 125)){
                 MessageUtil.message(player, ChatColor.RED + "You cannot fish people while falling into the void.");
