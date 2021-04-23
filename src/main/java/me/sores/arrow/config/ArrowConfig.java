@@ -31,6 +31,10 @@ public class ArrowConfig {
 
     public static List<ChatPrefix.Prefix> prefixes = Lists.newArrayList();
 
+    //Kill Worth
+    public static double SUPER_RATIO, HIGH_RATIO, MIDDLE_RATIO, LOW_RATIO, DEFAULT_RATIO;
+    public static int SUPER_MIN, SUPER_MAX, HIGH_MIN, HIGH_MAX, MIDDLE_MIN, MIDDLE_MAX, LOW_MIN, LOW_MAX, DEFAULT_MIN, DEFAULT_MAX;
+
     public ArrowConfig() {
         file = new ConfigFile("config.yml", Arrow.getInstance());
 
@@ -61,6 +65,28 @@ public class ArrowConfig {
                         StringEscapeUtils.unescapeJava(file.getString(path + "prefix")), data));
             }
         }
+
+        /////// WORTH RATIOS //////
+        SUPER_RATIO = file.getDouble("worths.super.ratio");
+        SUPER_MAX = file.getInt("worths.super.max");
+        SUPER_MIN = file.getInt("worths.super.min");
+
+        HIGH_RATIO = file.getDouble("worths.high.ratio");
+        HIGH_MAX = file.getInt("worths.high.max");
+        HIGH_MIN = file.getInt("worths.high.min");
+
+
+        MIDDLE_RATIO = file.getDouble("worths.middle.ratio");
+        MIDDLE_MAX = file.getInt("worths.middle.max");
+        MIDDLE_MIN = file.getInt("worths.middle.min");
+
+        LOW_RATIO = file.getDouble("worths.low.ratio");
+        LOW_MAX = file.getInt("worths.low.max");
+        LOW_MIN = file.getInt("worths.low.min");
+
+        DEFAULT_RATIO = file.getDouble("worths.default.ratio");
+        DEFAULT_MAX = file.getInt("worths.default.max");
+        DEFAULT_MIN = file.getInt("worths.default.min");
 
     }
 

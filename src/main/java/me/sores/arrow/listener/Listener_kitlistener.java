@@ -5,6 +5,7 @@ import me.sores.arrow.kit.Ability;
 import me.sores.arrow.kit.Kit;
 import me.sores.arrow.kit.wrapper.*;
 import me.sores.arrow.util.ArrowUtil;
+import me.sores.arrow.util.enumerations.KillWorth;
 import me.sores.arrow.util.killstreaks.KillstreakHandler;
 import me.sores.arrow.util.killstreaks.KillstreakTier;
 import me.sores.arrow.util.killstreaks.KillstreakType;
@@ -59,33 +60,46 @@ public class Listener_kitlistener implements Listener {
             if(killer == player) return;
             ArrowProfile killerProfile = ProfileHandler.getInstance().getFrom(killer.getUniqueId());
 
-            if(killerProfile != null){
-                killerProfile.addKill();
+            killerProfile.addKill();
 
-                if(killerProfile.hasKit()){
-                    KillstreakHandler streakHandler = KillstreakHandler.getInstance();
-                    int mod = (mod = killerProfile.getStreak() % 25) == 0 ? mod = 25 : mod;
-                    KillstreakTier tier = streakHandler.getTiers().get(mod);
+            if(killerProfile.hasKit()){
+                KillstreakHandler streakHandler = KillstreakHandler.getInstance();
+                int mod = (mod = killerProfile.getStreak() % 25) == 0 ? mod = 25 : mod;
+                KillstreakTier tier = streakHandler.getTiers().get(mod);
 
-                    if(tier != null){
-                        KillstreakType type = killerProfile.getSelectedStreak(tier);
+                if(tier != null){
+                    KillstreakType type = killerProfile.getSelectedStreak(tier);
 
-                        if(type != null){
-                            streakHandler.getKillstreaks().get(type).execute(killerProfile, killer);
+                    if(type != null){
+                        streakHandler.getKillstreaks().get(type).execute(killerProfile, killer);
 
-                            streakHandler.announceStreakItem(killer, type);
-                        }
+                        streakHandler.announceStreakItem(killer, type);
                     }
-
-                    if(streakHandler.hasSubstantialStreak(profile)) streakHandler.announceStreakEnd(killer, player);
                 }
 
-                ParticleEffect.FLAME.display(0, 0, 0, 1, 15, player.getLocation(), 3);
-                ParticleEffect.LAVA.display(0, 0, 0, 1, 15, player.getLocation(), 3);
-                killer.playSound(killer.getLocation(), Sound.NOTE_PLING, 1f, 1f);
-                killer.playSound(player.getLocation(), Sound.FIRE_IGNITE, 1f, 1f);
+                if(streakHandler.hasSubstantialStreak(profile)) streakHandler.announceStreakEnd(killer, player);
+            }
 
-                MessageUtil.message(killer, "&7You have killed &a" + player.getName() + "&7.");
+            ParticleEffect.FLAME.display(0, 0, 0, 1, 15, player.getLocation(), 3);
+            ParticleEffect.LAVA.display(0, 0, 0, 1, 15, player.getLocation(), 3);
+            killer.playSound(killer.getLocation(), Sound.NOTE_PLING, 1f, 1f);
+            killer.playSound(player.getLocation(), Sound.FIRE_IGNITE, 1f, 1f);
+
+            int worth = KillWorth.calculateKillWorth(profile);
+            killerProfile.setCoins(killerProfile.getCoins() + worth);
+
+            MessageUtil.message(killer, "&7You have received &a" + worth + " &7coins for killing &a" + player.getName() + "&7.");
+
+            if(killerProfile.hasKit()){
+                Kit kit = killerProfile.getSelectedKit();
+
+                if(kit.getRegisteredAbility() != null){
+                    Ability ability = kit.getRegisteredAbility();
+
+                    if(ability.fetchWrapperItems().contains(IKillGained.class)){
+                        ((IKillGained) ability).onKillGained(kit, event, player, killer);
+                    }
+                }
             }
         }
 

@@ -81,6 +81,11 @@ public class ProfileHandler extends Handler {
 
         if(profile.hasKit()) profile.clearKit(player);
 
+        if(profile.inCombat()){
+            player.setHealth(0);
+            player.spigot().respawn();
+        }
+
         save(profile);
         profiles.remove(player.getUniqueId());
     }

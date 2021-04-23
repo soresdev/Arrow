@@ -32,3 +32,24 @@ themes:
     primary: '&9&l'
     secondary: '&b'
     value: '&r'
+worths:
+  super:
+    ratio: 10.00
+    max: 50
+    min: 41
+  high:
+    ratio: 8.00
+    max: 40
+    min: 31
+  middle:
+    max: 30
+    min: 21
+    ratio: 6.00
+  low:
+    max: 20
+    min: 11
+    ratio: 4.00
+  default:
+    max: 10
+    min: 1
+    ratio: 2.00
