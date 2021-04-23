@@ -11,6 +11,7 @@ import me.sores.arrow.listener.Listener_kitlistener;
 import me.sores.arrow.listener.Listener_playerlistener;
 import me.sores.arrow.listener.Listener_worldlistener;
 import me.sores.arrow.util.ImpulseHook;
+import me.sores.arrow.util.killstreaks.KillstreakHandler;
 import me.sores.arrow.util.profile.ProfileHandler;
 import me.sores.arrow.util.region.RegionHandler;
 import me.sores.arrow.util.scoreboard.BoardHandler;
@@ -58,6 +59,7 @@ public class Init extends AbstractInit {
         initHandler(new AbilityHandler(), false);
         initHandler(new KitsHandler(), false);
         initHandler(new RegionHandler(), true);
+        initHandler(new KillstreakHandler(), true);
         
     }
 
@@ -78,6 +80,11 @@ public class Init extends AbstractInit {
         registerCommand("statchange", new Command_statchange());
         registerCommand("scoreboard", new Command_scoreboard());
         registerCommand("region", new Command_region());
+        registerCommand("clearkit", new Command_clearkit());
+        registerCommand("chatcolor", new Command_chatcolor());
+        registerCommand("prefix", new Command_prefix());
+        registerCommand("killstreaks", new Command_killstreaks());
+        registerCommand("pay", new Command_pay());
     }
 
     @Override

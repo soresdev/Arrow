@@ -2,8 +2,11 @@ package me.sores.arrow.kit;
 
 import com.google.common.collect.Lists;
 import me.sores.arrow.Arrow;
+import me.sores.arrow.kit.excep.AbilityPerformException;
 import me.sores.arrow.kit.wrapper.WrapperItem;
 import me.sores.arrow.util.IChange;
+import me.sores.arrow.util.profile.ArrowProfile;
+import me.sores.arrow.util.profile.ProfileHandler;
 import me.sores.arrow.util.region.Region;
 import me.sores.arrow.util.region.RegionHandler;
 import me.sores.arrow.util.region.RegionType;
@@ -24,6 +27,8 @@ public abstract class Ability implements JsonSerializable, IChange {
         this.type = type;
     }
 
+    public static String ABILITY_EXCEPTION_MESSAGE = ChatColor.RED + "You cannot use that ability here.";
+
     private AbilityType type;
     private long cooldown = -1;
 
@@ -33,10 +38,15 @@ public abstract class Ability implements JsonSerializable, IChange {
         AbilityHandler.getInstance().registerAbility(this);
     }
 
-    public boolean canPerform(Player player){ //base this off player state instead todo
-        Region region = RegionHandler.getInstance().getRegion(player.getLocation());
+    public boolean canPerform(Player player, Ability ability) throws AbilityPerformException { //base this off player state instead todo
+        if(RegionHandler.getInstance().getRegion(player.getLocation()) != null){
+            Region region = RegionHandler.getInstance().getRegion(player.getLocation());
 
-        return region == null || region.isPvp() && region.isAbilities() && region.getType() != RegionType.SPAWN;
+            if(region.getType() == RegionType.SPAWN || !region.isPvp() || !region.isAbilities())
+                throw new AbilityPerformException(player, ProfileHandler.getInstance().getFrom(player.getUniqueId()), ability, ABILITY_EXCEPTION_MESSAGE);
+        }
+
+        return true;
     }
 
     public void perform(Player player, Ability ability){

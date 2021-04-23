@@ -3,8 +3,12 @@ package me.sores.arrow.config;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import me.sores.arrow.Arrow;
+import me.sores.arrow.util.prefixes.ChatPrefix;
 import me.sores.arrow.util.theme.Theme;
+import me.sores.impulse.util.ItemData;
 import me.sores.impulse.util.configuration.ConfigFile;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.bukkit.Material;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +29,8 @@ public class ArrowConfig {
     public static List<Theme> themeList = Lists.newArrayList();
     public static Theme defaultTheme;
 
+    public static List<ChatPrefix.Prefix> prefixes = Lists.newArrayList();
+
     public ArrowConfig() {
         file = new ConfigFile("config.yml", Arrow.getInstance());
 
@@ -38,10 +44,23 @@ public class ArrowConfig {
         COMBAT_TIMER = file.getInt("combat.timer");
         PEARL_TIMER = file.getInt("combat.pearl");
 
-        for(String rawTheme : file.getConfigurationSection("themes").getKeys(false)){
-            registerTheme(Theme.fromSection(file.getConfigurationSection("themes." + rawTheme), rawTheme));
+        if(file.contains("themes")){
+            for(String rawTheme : file.getConfigurationSection("themes").getKeys(false)){
+                registerTheme(Theme.fromSection(file.getConfigurationSection("themes." + rawTheme), rawTheme));
+            }
+            defaultTheme = themeHashMap.get("default");
         }
-        defaultTheme = themeHashMap.get("default");
+
+        if(file.contains("prefixes")){
+            ItemData data = new ItemData(Material.NAME_TAG);
+
+            for(String index : file.getConfigurationSection("prefixes").getKeys(false)){
+                String path = "prefixes." + index + ".";
+
+                registerPrefix(new ChatPrefix.Prefix(index, StringEscapeUtils.unescapeJava(file.getString(path + "display")),
+                        StringEscapeUtils.unescapeJava(file.getString(path + "prefix")), data));
+            }
+        }
 
     }
 
@@ -53,11 +72,16 @@ public class ArrowConfig {
     private static void destroy(){
         themeHashMap.clear();
         themeList.clear();
+        prefixes.clear();
     }
 
     private void registerTheme(Theme theme){
         themeHashMap.put(theme.getIndex(), theme);
         themeList.add(theme);
+    }
+
+    private void registerPrefix(ChatPrefix.Prefix prefix){
+        prefixes.add(prefix);
     }
 
     public static Theme getTheme(String raw){

@@ -177,7 +177,6 @@ public class StatChange implements IChange {
                         case "reset":{
                             try{
                                 profile.clean();
-                                profile.saveData();
                                 MessageUtil.message(sender, "&7You have reset &6" + profile.getPlayer().getName() + "'s &7profile.");
                             }catch (Exception ex){
                                 MessageUtil.message(sender, ChatColor.RED + "Failed to reset profile, see console for log.");

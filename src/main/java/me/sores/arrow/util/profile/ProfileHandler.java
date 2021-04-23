@@ -3,13 +3,18 @@ package me.sores.arrow.util.profile;
 import com.google.common.collect.Maps;
 import me.sores.arrow.Arrow;
 import me.sores.arrow.util.ArrowUtil;
+import me.sores.arrow.util.tasks.SaveDataTask;
 import me.sores.impulse.util.PlayerUtil;
+import me.sores.impulse.util.StringUtil;
+import me.sores.impulse.util.TaskUtil;
 import me.sores.impulse.util.handler.Handler;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -41,6 +46,8 @@ public class ProfileHandler extends Handler {
                 load(getFrom(player.getUniqueId()));
             });
         }
+
+        TaskUtil.runTaskTimer(Arrow.getInstance(), new SaveDataTask(), 20L * 60 * 5, 20L * 60 * 5, true);
     }
 
     @Override
@@ -72,6 +79,8 @@ public class ProfileHandler extends Handler {
         Player player = event.getPlayer();
         ArrowProfile profile = getFrom(player.getUniqueId());
 
+        if(profile.hasKit()) profile.clearKit(player);
+
         save(profile);
         profiles.remove(player.getUniqueId());
     }
@@ -81,13 +90,29 @@ public class ProfileHandler extends Handler {
         Player player = event.getPlayer();
         ArrowProfile profile = getFrom(player.getUniqueId());
 
-        Bukkit.getScheduler().runTaskLater(Arrow.getInstance(), () -> {
+        TaskUtil.runTaskLater(Arrow.getInstance(), () -> {
             PlayerUtil.gotoSpawn(player);
             ArrowUtil.resetPlayer(player);
 
             if(profile.hasKit()) profile.clearKit(player);
             if(!profile.isScoreboard()) profile.hideScoreboard();
-        }, 2L);
+        }, 2L, false);
+    }
+
+    @EventHandler
+    public void onPlayerChat(AsyncPlayerChatEvent event){
+        ArrowProfile profile = getFrom(event.getPlayer().getUniqueId());
+
+        if(profile.getSelectedPrefix() != null){
+            if(profile.getSelectedPrefixColor() != null){
+                event.setFormat(StringUtil.color(profile.getSelectedPrefixColor().getColor() +
+                        profile.getSelectedPrefix().getPrefix().replace("_", " ")) + " " + ChatColor.RESET + event.getFormat());
+            }else{
+                event.setFormat(profile.getSelectedPrefix().getPrefix().replace("_", " ") + " " + ChatColor.RESET + event.getFormat());
+            }
+        }
+
+        if(profile.getSelectedChatColor() != null) event.setMessage(StringUtil.color(profile.getSelectedChatColor().getColor().replace("_", " ") + event.getMessage()));
     }
 
     /**

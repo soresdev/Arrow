@@ -1,6 +1,9 @@
 package me.sores.arrow.util;
 
 import me.sores.arrow.Arrow;
+import me.sores.arrow.util.region.Region;
+import me.sores.arrow.util.region.RegionHandler;
+import me.sores.arrow.util.region.RegionType;
 import me.sores.impulse.util.PlayerUtil;
 import me.sores.impulse.util.StringUtil;
 import net.minecraft.server.v1_8_R3.CancelledPacketHandleException;
@@ -8,6 +11,7 @@ import net.minecraft.server.v1_8_R3.PacketPlayInClientCommand;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -51,6 +55,16 @@ public class ArrowUtil {
         }catch (CancelledPacketHandleException ex){
             ex.printStackTrace();
         }
+    }
+
+    public static boolean isSpawnArea(Player player){
+        return RegionHandler.getInstance().getRegion(player.getLocation()) != null &&
+                RegionHandler.getInstance().getRegion(player.getLocation()).getType() == RegionType.SPAWN;
+    }
+
+    public static boolean isSpawnArea(Location location){
+        return RegionHandler.getInstance().getRegion(location) != null &&
+                RegionHandler.getInstance().getRegion(location).getType() == RegionType.SPAWN;
     }
 
     public static void resetPlayer(Player player) {

@@ -26,7 +26,7 @@ public class KitCommand {
                 @Override
                 public void execute(CommandSender sender, String[] args) {
                     Player player = (Player) sender;
-                    kit.apply(player);
+                    kit.apply(player, false);
                 }
             });
         }catch (Exception ex){

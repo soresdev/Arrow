@@ -54,7 +54,7 @@ public class KitSelectorMenu extends PaginatedMenu {
                             return;
                         }
 
-                        kit.apply(player);
+                        kit.apply(player, false);
                         player.closeInventory();
                     }
                 });

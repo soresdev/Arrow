@@ -29,10 +29,10 @@ public class Kit {
         loadout = new Loadout();
     }
 
-    public void apply(Player player){
+    public void apply(Player player, boolean forced){
         ArrowProfile profile = ProfileHandler.getInstance().getFrom(player.getUniqueId());
 
-        if(profile.hasKit()){
+        if(profile.hasKit() && !forced){
             MessageUtil.message(player, ChatColor.RED + "You already have a kit selected.");
             player.closeInventory();
             return;
@@ -57,6 +57,9 @@ public class Kit {
             player.getInventory().addItem(profile.getHealingItem().getItem());
         }
 
+        if(!forced) MessageUtil.message(player, "&7You have selected kit &a" + getDisplayName() + ".");
+
+        player.updateInventory();
         profile.setSelectedKit(this);
     }
 

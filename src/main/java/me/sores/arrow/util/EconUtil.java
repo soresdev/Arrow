@@ -37,6 +37,11 @@ public class EconUtil {
             return;
         }
 
+        if(amount > 500){
+            MessageUtil.message(player, ChatColor.RED + "You cannot pay more than 500 coins in one payment.");
+            return;
+        }
+
         if(playerProfile.getCoins() < amount){
             MessageUtil.message(player, ChatColor.RED + "You do not have enough coins.");
             return;

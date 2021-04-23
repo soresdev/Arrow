@@ -5,20 +5,35 @@ import me.sores.arrow.kit.Ability;
 import me.sores.arrow.kit.Kit;
 import me.sores.arrow.kit.wrapper.*;
 import me.sores.arrow.util.ArrowUtil;
+import me.sores.arrow.util.killstreaks.KillstreakHandler;
+import me.sores.arrow.util.killstreaks.KillstreakTier;
+import me.sores.arrow.util.killstreaks.KillstreakType;
 import me.sores.arrow.util.profile.ArrowProfile;
 import me.sores.arrow.util.profile.ProfileHandler;
+import me.sores.arrow.util.region.Region;
+import me.sores.arrow.util.region.RegionHandler;
+import me.sores.arrow.util.region.RegionType;
+import me.sores.impulse.util.MessageUtil;
+import me.sores.impulse.util.ParticleEffect;
 import me.sores.impulse.util.entity.CopyOfFishingHook;
+import org.bukkit.ChatColor;
+import org.bukkit.Effect;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by sores on 4/20/2021.
@@ -39,7 +54,40 @@ public class Listener_kitlistener implements Listener {
             profile.cleanPearl(player);
         }
 
-        //killer stuff
+        if(player.getKiller() != null){
+            Player killer = player.getKiller();
+            if(killer == player) return;
+            ArrowProfile killerProfile = ProfileHandler.getInstance().getFrom(killer.getUniqueId());
+
+            if(killerProfile != null){
+                killerProfile.addKill();
+
+                if(killerProfile.hasKit()){
+                    KillstreakHandler streakHandler = KillstreakHandler.getInstance();
+                    int mod = (mod = killerProfile.getStreak() % 25) == 0 ? mod = 25 : mod;
+                    KillstreakTier tier = streakHandler.getTiers().get(mod);
+
+                    if(tier != null){
+                        KillstreakType type = killerProfile.getSelectedStreak(tier);
+
+                        if(type != null){
+                            streakHandler.getKillstreaks().get(type).execute(killerProfile, killer);
+
+                            streakHandler.announceStreakItem(killer, type);
+                        }
+                    }
+
+                    if(streakHandler.hasSubstantialStreak(profile)) streakHandler.announceStreakEnd(killer, player);
+                }
+
+                ParticleEffect.FLAME.display(0, 0, 0, 1, 15, player.getLocation(), 3);
+                ParticleEffect.LAVA.display(0, 0, 0, 1, 15, player.getLocation(), 3);
+                killer.playSound(killer.getLocation(), Sound.NOTE_PLING, 1f, 1f);
+                killer.playSound(player.getLocation(), Sound.FIRE_IGNITE, 1f, 1f);
+
+                MessageUtil.message(killer, "&7You have killed &a" + player.getName() + "&7.");
+            }
+        }
 
         profile.resetStreak();
 
@@ -70,6 +118,41 @@ public class Listener_kitlistener implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event){
         Player player = event.getPlayer();
         ArrowProfile profile = ProfileHandler.getInstance().getFrom(player.getUniqueId());
+        ItemStack item = event.getItem();
+
+        if(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
+            if(item != null){
+
+                switch (item.getType()){
+                    case ENDER_PEARL:{
+                        if(RegionHandler.getInstance().getRegion(player.getLocation()) != null){
+                            Region region = RegionHandler.getInstance().getRegion(player.getLocation());
+
+                            if(region.getType() == RegionType.SPAWN){
+                                event.setCancelled(true);
+                                player.updateInventory();
+
+                                MessageUtil.message(player, ChatColor.RED + "You cannot throw pearls in spawn.");
+                                return;
+                            }
+                        }
+
+                        long expiry = profile.getLastPearlThrow();
+                        if(expiry > System.currentTimeMillis()){
+                            long e = TimeUnit.MILLISECONDS.toSeconds(expiry - System.currentTimeMillis()) + 1;
+
+                            if(e < 0) return;
+
+                            MessageUtil.message(player, ChatColor.RED + "Your pearl cooldown will end in " + e + "s.");
+                            event.setCancelled(true);
+                            player.updateInventory();
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
 
         if(profile.getSelectedKit() != null){
             Kit kit = profile.getSelectedKit();
@@ -116,12 +199,16 @@ public class Listener_kitlistener implements Listener {
                 Player damaged = (Player) event.getEntity();
                 ArrowProfile damagedProfile = ProfileHandler.getInstance().getFrom(damaged.getUniqueId());
 
+                //protection check here
+
                 if(!event.isCancelled()){
                     damagerProfile.enterCombat(ArrowConfig.COMBAT_TIMER * 1000);
                     damagedProfile.enterCombat(ArrowConfig.COMBAT_TIMER * 1000);
+
+                    if(damagerProfile.isBloodEffect()) damaged.getLocation().getWorld().playEffect(damaged.getLocation(), Effect.STEP_SOUND, Material.REDSTONE_BLOCK);
                 }
 
-                if(damagerProfile.getSelectedKit() != null){
+                if(damagedProfile.getSelectedKit() != null){
                     Kit kit = damagedProfile.getSelectedKit();
 
                     if(kit.getRegisteredAbility() != null){
@@ -419,6 +506,18 @@ public class Listener_kitlistener implements Listener {
     public void onPlayerTeleportWrap(PlayerTeleportEvent event){
         Player player = event.getPlayer();
         ArrowProfile profile = ProfileHandler.getInstance().getFrom(player.getUniqueId());
+
+        if(event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL){
+            if(RegionHandler.getInstance().getRegion(event.getTo()) != null){
+                Region region = RegionHandler.getInstance().getRegion(event.getTo());
+
+                if(region.getType() == RegionType.SPAWN){
+                    event.setCancelled(true);
+                    player.getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
+                    player.updateInventory();
+                }
+            }
+        }
 
         if(profile.getSelectedKit() != null){
             Kit kit = profile.getSelectedKit();

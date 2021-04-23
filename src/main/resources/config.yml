@@ -5,10 +5,20 @@ database:
   name: ''
   collection: ''
 scoreboard:
-  title: 'Arrow'
+  title: '%primary%Arrow %secondary%[Dev]'
 combat:
   timer: 25
   pearl: 16
+prefixes:
+  questionmark:
+    display: '\u003F'
+    prefix: '\u003F'
+  dollarsign:
+    display: '\u0024'
+    prefix: '\u0024'
+  gg:
+    display: 'GG'
+    prefix: 'GG'
 themes:
   default:
     primary: '&6&l'

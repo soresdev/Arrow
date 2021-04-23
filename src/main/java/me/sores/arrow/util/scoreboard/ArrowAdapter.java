@@ -21,7 +21,8 @@ public class ArrowAdapter implements AssembleAdapter {
     public String getTitle(Player player) {
         ArrowProfile profile = ProfileHandler.getInstance().getFrom(player.getUniqueId());
 
-        return profile.getSelectedTheme().getPrimary() + ArrowConfig.SCOREBOARD_TITLE;
+        return ArrowConfig.SCOREBOARD_TITLE.replace("%primary%", profile.getSelectedTheme().getPrimary())
+                .replace("%secondary%", profile.getSelectedTheme().getSecondary());
     }
 
     @Override

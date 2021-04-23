@@ -5,6 +5,7 @@ import me.sores.arrow.kit.Ability;
 import me.sores.arrow.kit.AbilityHandler;
 import me.sores.arrow.kit.AbilityType;
 import me.sores.arrow.kit.Kit;
+import me.sores.arrow.kit.excep.AbilityPerformException;
 import me.sores.arrow.kit.wrapper.IFish;
 import me.sores.arrow.kit.wrapper.IProjectileLaunch;
 import me.sores.impulse.util.LocationUtil;
@@ -59,9 +60,10 @@ public class Ability_fisherman extends Ability implements IFish, IProjectileLaun
         if(player.getItemInHand() == null || player.getItemInHand().getType() != Material.FISHING_ROD) return;
 
         if(event.getCaught() != null && event.getCaught() instanceof Player){
-            if(!canPerform(player)){
-                MessageUtil.message(player, ChatColor.RED + "You cannot use that ability here.");
-                return;
+            try{
+                canPerform(player, this);
+            }catch (AbilityPerformException ex){
+                MessageUtil.message(player, ex.getMessage());
             }
 
             if(AbilityHandler.getInstance().isOnCooldown(player)){

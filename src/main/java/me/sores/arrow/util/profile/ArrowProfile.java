@@ -1,20 +1,28 @@
 package me.sores.arrow.util.profile;
 
+import com.google.common.collect.Maps;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import me.sores.arrow.Init;
 import me.sores.arrow.config.ArrowConfig;
 import me.sores.arrow.kit.Kit;
 import me.sores.arrow.util.ArrowUtil;
+import me.sores.arrow.util.chatcolors.ArrowChatColor;
 import me.sores.arrow.util.enumerations.HealingItem;
+import me.sores.arrow.util.killstreaks.KillstreakTier;
+import me.sores.arrow.util.killstreaks.KillstreakType;
+import me.sores.arrow.util.prefixes.ChatPrefix;
+import me.sores.arrow.util.prefixes.ChatPrefixColor;
 import me.sores.arrow.util.scoreboard.BoardHandler;
 import me.sores.arrow.util.theme.Theme;
 import me.sores.impulse.util.StringUtil;
+import me.sores.impulse.util.json.JSONObject;
 import me.sores.impulse.util.profile.PlayerProfile;
 import org.bson.Document;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -31,6 +39,11 @@ public class ArrowProfile extends PlayerProfile {
     private HealingItem healingItem;
 
     private Theme selectedTheme;
+    private ArrowChatColor selectedChatColor;
+    private ChatPrefix.Prefix selectedPrefix;
+    private ChatPrefixColor selectedPrefixColor;
+
+    private Map<KillstreakTier, KillstreakType> selectedStreaks = Maps.newHashMap();
 
     /**
      * Non-Saved Data
@@ -54,6 +67,9 @@ public class ArrowProfile extends PlayerProfile {
         bloodEffect = false;
 
         selectedTheme = ArrowConfig.defaultTheme;
+        selectedChatColor = ArrowChatColor.RESET;
+        selectedPrefix = null;
+        selectedPrefixColor = null;
 
         building = false;
     }
@@ -102,6 +118,61 @@ public class ArrowProfile extends PlayerProfile {
                 if(fetched.containsKey("healing_item")) healingItem = HealingItem.valueOf(fetched.getString("healing_item"));
                 if(fetched.containsKey("theme")) selectedTheme = ArrowConfig.getTheme(fetched.getString("theme"));
 
+                if(fetched.containsKey("chatcolor")){
+                    try{
+                        selectedChatColor = ArrowChatColor.valueOf(fetched.getString("chatcolor"));
+                    }catch (Exception ex){
+                        ex.printStackTrace();
+                    }
+                }
+
+                if(fetched.containsKey("prefix")){
+                    try{
+                        selectedPrefix = ChatPrefix.valueOf(fetched.getString("prefix"));
+                    }catch (Exception ex){
+                        ex.printStackTrace();
+                    }
+                }
+
+                if(fetched.containsKey("prefix_color")){
+                    try{
+                        selectedPrefixColor = ChatPrefixColor.valueOf(fetched.getString("prefix_color"));
+                    }catch (Exception ex){
+                        ex.printStackTrace();
+                    }
+                }
+
+                if(fetched.containsKey("selectedstreaks")){
+                    try{
+                        JSONObject object = new JSONObject(fetched.getString("selectedstreaks"));
+
+                        for(Map.Entry<String, Object> entry : object.toMap().entrySet()){
+                            String ti = entry.getKey();
+                            String ty = (String) entry.getValue();
+
+                            try{
+                                KillstreakTier tier = KillstreakTier.valueOf(ti);
+                                KillstreakType type = KillstreakType.valueOf(ty);
+
+                                if(tier != null){
+                                    if(type != null){
+                                        selectedStreaks.put(tier, type);
+                                    }else{
+                                        selectedStreaks.put(tier, tier.getDefaultStreak());
+                                    }
+                                }
+                            }catch (Exception ex){
+                                continue;
+                            }
+                        }
+
+                    }catch (Exception ex){
+                        setupDefaultStreaks();
+                    }
+                }else{
+                    setupDefaultStreaks();
+                }
+
             }catch (Exception ex){
                 StringUtil.log("&c[Arrow] Data load failure for " + getName() + "'s profile.");
                 ex.printStackTrace();
@@ -126,6 +197,25 @@ public class ArrowProfile extends PlayerProfile {
         document.put("scoreboard", scoreboard);
         document.put("blood_effect", bloodEffect);
         document.put("theme", selectedTheme.getIndex());
+
+        if(selectedChatColor != null) document.put("chatcolor", selectedChatColor.toString());
+        if(selectedPrefix != null) document.put("prefix", selectedPrefix.getIndex());
+        if(selectedPrefixColor != null) document.put("prefix_color", selectedPrefixColor.toString());
+
+        if(!selectedStreaks.isEmpty()){
+            JSONObject object = new JSONObject();
+
+            for(Map.Entry<KillstreakTier, KillstreakType> entry : selectedStreaks.entrySet()){
+                KillstreakTier tier = entry.getKey();
+                KillstreakType type = entry.getValue();
+
+                if(tier != null && type != null){
+                    object.put(tier.toString(), type.toString());
+                }
+            }
+
+            document.put("selectedstreaks", object.toString());
+        }
 
         return document;
     }
@@ -249,6 +339,42 @@ public class ArrowProfile extends PlayerProfile {
 
     public void setSelectedTheme(Theme selectedTheme) {
         this.selectedTheme = selectedTheme;
+    }
+
+    public ArrowChatColor getSelectedChatColor() {
+        return selectedChatColor;
+    }
+
+    public void setSelectedChatColor(ArrowChatColor selectedChatColor) {
+        this.selectedChatColor = selectedChatColor;
+    }
+
+    public ChatPrefix.Prefix getSelectedPrefix() {
+        return selectedPrefix;
+    }
+
+    public void setSelectedPrefix(ChatPrefix.Prefix selectedPrefix) {
+        this.selectedPrefix = selectedPrefix;
+    }
+
+    public ChatPrefixColor getSelectedPrefixColor() {
+        return selectedPrefixColor;
+    }
+
+    public void setSelectedPrefixColor(ChatPrefixColor selectedPrefixColor) {
+        this.selectedPrefixColor = selectedPrefixColor;
+    }
+
+    public void setStreakTier(KillstreakTier tier, KillstreakType type){
+        selectedStreaks.put(tier, type);
+    }
+
+    public KillstreakType getSelectedStreak(KillstreakTier tier){
+        return selectedStreaks.get(tier);
+    }
+
+    public void setupDefaultStreaks(){
+        for(KillstreakTier tier : KillstreakTier.values()) selectedStreaks.put(tier, tier.getDefaultStreak());
     }
 
     /**
