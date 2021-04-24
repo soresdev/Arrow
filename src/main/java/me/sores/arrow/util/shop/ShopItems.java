@@ -2,6 +2,7 @@ package me.sores.arrow.util.shop;
 
 import me.sores.arrow.util.ArrowUtil;
 import me.sores.arrow.util.EconUtil;
+import me.sores.arrow.util.enumerations.HealingItem;
 import me.sores.arrow.util.profile.ArrowProfile;
 import me.sores.impulse.util.ItemBuilder;
 import me.sores.impulse.util.MessageUtil;
@@ -20,13 +21,18 @@ public enum ShopItems {
     REFILL("&aHealing Item Refill", new ItemBuilder(Material.MUSHROOM_SOUP).setName("&bHealing Item Refill").setLore(Arrays.asList(
             " ",
             StringUtil.color("&7Buying this will refill your inventory with "),
-            StringUtil.color("&7your selected Healing Item."),
+            StringUtil.color("&716 of your selected Healing Item."),
             StringUtil.color("&rCost: &6" + 10)
 
     )).build(), 10){
         @Override
         public void interact(Player player, ArrowProfile profile) {
+            ItemStack soup = new ItemBuilder(Material.MUSHROOM_SOUP).setName(StringUtil.color("&6Soup")).build();
+            ItemStack pots = new ItemBuilder(Material.POTION).setName(StringUtil.color("&6Potion")).setData((short) 16421).build();
 
+            for(int i = 0; i < 16; i++){
+                player.getInventory().addItem(profile.getHealingItem() == HealingItem.SOUP ? soup : pots);
+            }
         }
     },
 
