@@ -1,6 +1,8 @@
 package me.sores.arrow.util;
 
 import me.sores.arrow.Arrow;
+import me.sores.arrow.kit.AbilityHandler;
+import me.sores.arrow.util.enumerations.SpawnItems;
 import me.sores.arrow.util.region.Region;
 import me.sores.arrow.util.region.RegionHandler;
 import me.sores.arrow.util.region.RegionType;
@@ -90,7 +92,7 @@ public class ArrowUtil {
     public static void clean(Player player){
         resetPlayer(player);
 
-        //spawnitems & Ability check
+        SpawnItems.apply(player);
     }
 
     public static void repairPlayerArmor(Player player){

@@ -1,11 +1,13 @@
 package me.sores.arrow.listener;
 
+import me.sores.arrow.Arrow;
 import me.sores.arrow.config.ArrowConfig;
 import me.sores.arrow.kit.Ability;
 import me.sores.arrow.kit.Kit;
 import me.sores.arrow.kit.wrapper.*;
 import me.sores.arrow.util.ArrowUtil;
 import me.sores.arrow.util.enumerations.KillWorth;
+import me.sores.arrow.util.enumerations.SpawnItems;
 import me.sores.arrow.util.killstreaks.KillstreakHandler;
 import me.sores.arrow.util.killstreaks.KillstreakTier;
 import me.sores.arrow.util.killstreaks.KillstreakType;
@@ -53,6 +55,10 @@ public class Listener_kitlistener implements Listener {
 
         if(profile.getLastPearl() != null){
             profile.cleanPearl(player);
+        }
+
+        if(!profile.getShopItems().isEmpty()){
+            profile.getShopItems().clear();
         }
 
         if(player.getKiller() != null){
@@ -129,6 +135,12 @@ public class Listener_kitlistener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event){
+        ArrowUtil.resetPlayer(event.getPlayer());
+        SpawnItems.apply(event.getPlayer());
+    }
+
+    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event){
         Player player = event.getPlayer();
         ArrowProfile profile = ProfileHandler.getInstance().getFrom(player.getUniqueId());
@@ -138,6 +150,27 @@ public class Listener_kitlistener implements Listener {
             if(item != null){
 
                 switch (item.getType()){
+                    case CHEST:{
+                        if(item.isSimilar(SpawnItems.KIT_SELECTOR.getItem())){
+                            SpawnItems.KIT_SELECTOR.interact(player, profile);
+                        }
+
+                        break;
+                    }
+                    case EYE_OF_ENDER:{
+                        if(item.isSimilar(SpawnItems.SETTINGS.getItem())){
+                            SpawnItems.SETTINGS.interact(player, profile);
+                        }
+
+                        break;
+                    }
+                    case WATCH:{
+                        if(item.isSimilar(SpawnItems.clone(profile, SpawnItems.PREVIOUS_KIT.getItem()))){
+                            SpawnItems.PREVIOUS_KIT.interact(player, profile);
+                        }
+
+                        break;
+                    }
                     case ENDER_PEARL:{
                         if(RegionHandler.getInstance().getRegion(player.getLocation()) != null){
                             Region region = RegionHandler.getInstance().getRegion(player.getLocation());
@@ -213,7 +246,10 @@ public class Listener_kitlistener implements Listener {
                 Player damaged = (Player) event.getEntity();
                 ArrowProfile damagedProfile = ProfileHandler.getInstance().getFrom(damaged.getUniqueId());
 
-                //protection check here
+                if(ArrowUtil.isSpawnArea(damaged) || ArrowUtil.isSpawnArea(damager)){
+                    event.setCancelled(true);
+                    return;
+                }
 
                 if(!event.isCancelled()){
                     damagerProfile.enterCombat(ArrowConfig.COMBAT_TIMER * 1000);
@@ -242,6 +278,11 @@ public class Listener_kitlistener implements Listener {
                 if(event.getEntity() instanceof Player){
                     Player damaged = (Player) event.getEntity();
                     ArrowProfile damagedProfile = ProfileHandler.getInstance().getFrom(damaged.getUniqueId());
+
+                    if(ArrowUtil.isSpawnArea(damaged)){
+                        event.setCancelled(true);
+                        return;
+                    }
 
                     if(!event.isCancelled()){
                         profile.enterCombat(ArrowConfig.COMBAT_TIMER * 1000);
@@ -483,6 +524,11 @@ public class Listener_kitlistener implements Listener {
         if(event.getEntity() instanceof Player){
             Player player = (Player) event.getEntity();
             ArrowProfile profile = ProfileHandler.getInstance().getFrom(player.getUniqueId());
+
+            if(ArrowUtil.isSpawnArea(player)){
+                event.setCancelled(true);
+                return;
+            }
 
             if(profile.getSelectedKit() != null){
                 Kit kit = profile.getSelectedKit();

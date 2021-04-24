@@ -1,6 +1,8 @@
 package me.sores.arrow.util.profile;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mongodb.BasicDBList;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import me.sores.arrow.Init;
@@ -14,6 +16,7 @@ import me.sores.arrow.util.killstreaks.KillstreakType;
 import me.sores.arrow.util.prefixes.ChatPrefix;
 import me.sores.arrow.util.prefixes.ChatPrefixColor;
 import me.sores.arrow.util.scoreboard.BoardHandler;
+import me.sores.arrow.util.shop.ShopItems;
 import me.sores.arrow.util.theme.Theme;
 import me.sores.impulse.util.StringUtil;
 import me.sores.impulse.util.json.JSONObject;
@@ -22,6 +25,7 @@ import org.bson.Document;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -44,6 +48,7 @@ public class ArrowProfile extends PlayerProfile {
     private ChatPrefixColor selectedPrefixColor;
 
     private Map<KillstreakTier, KillstreakType> selectedStreaks = Maps.newHashMap();
+    private List<ShopItems> shopItems = Lists.newArrayList();
 
     /**
      * Non-Saved Data
@@ -80,6 +85,8 @@ public class ArrowProfile extends PlayerProfile {
         setDeaths(0);
         resetStreak();
         setPreviousKit(null);
+
+        shopItems.clear();
 
         ProfileHandler.getInstance().save(this);
     }
@@ -139,6 +146,25 @@ public class ArrowProfile extends PlayerProfile {
                         selectedPrefixColor = ChatPrefixColor.valueOf(fetched.getString("prefix_color"));
                     }catch (Exception ex){
                         ex.printStackTrace();
+                    }
+                }
+
+                if(fetched.containsKey("shopitems")){
+                    List<ShopItems> items = (List<ShopItems>) fetched.get("shopitems");
+
+                    for(Object object : items){
+                        String key = (String) object;
+                        if(key.equalsIgnoreCase("_id")) continue;
+
+                        try{
+                            ShopItems item = ShopItems.valueOf(key);
+
+                            if(item != null && !shopItems.contains(item)){
+                                shopItems.add(item);
+                            }
+                        }catch (Exception ex){
+                            ex.printStackTrace();
+                        }
                     }
                 }
 
@@ -215,6 +241,16 @@ public class ArrowProfile extends PlayerProfile {
             }
 
             document.put("selectedstreaks", object.toString());
+        }
+
+        if(!shopItems.isEmpty()){
+            BasicDBList items = new BasicDBList();
+
+            for(ShopItems item : shopItems){
+                if(!items.contains(item.toString())) items.add(item.toString());
+            }
+
+            document.put("shopitems", items);
         }
 
         return document;
@@ -375,6 +411,22 @@ public class ArrowProfile extends PlayerProfile {
 
     public void setupDefaultStreaks(){
         for(KillstreakTier tier : KillstreakTier.values()) selectedStreaks.put(tier, tier.getDefaultStreak());
+    }
+
+    public List<ShopItems> getShopItems() {
+        return shopItems;
+    }
+
+    public void addShopItem(ShopItems item){
+        if(!shopItems.contains(item)) shopItems.add(item);
+    }
+
+    public void removeShopItem(ShopItems item){
+        shopItems.remove(item);
+    }
+
+    public boolean hasShopItem(ShopItems item){
+        return shopItems.contains(item);
     }
 
     /**

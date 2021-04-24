@@ -43,7 +43,6 @@ public class Command_sk extends BaseCommand {
             StringUtil.color("&7/sk removeability <kit> &r- Removes the kit's current ability."),
             StringUtil.color("&7/sk delete <kit> &r- Delete an existing kit."),
             StringUtil.color("&7/sk view <kit> &r- View info about an existing kit."),
-            StringUtil.color("&7/sk copy <kit> <name> &r- Copy an existing kit to a new kit."),
             StringUtil.color("&7/sk bind &r- Bind the item you are holding."),
             StringUtil.color("&8&m------------------------------------------------"),
     };
@@ -116,7 +115,7 @@ public class Command_sk extends BaseCommand {
                 }
 
                 kit.setPub(!kit.isPub());
-                MessageUtil.message(player, "&7You have made kit " + kit.getName() + (kit.isPub() ? " &apublic." : "&cunlisted."));
+                MessageUtil.message(player, "&7You have made kit " + kit.getName() + (kit.isPub() ? " &apublic." : " &cunlisted."));
                 break;
             }
 

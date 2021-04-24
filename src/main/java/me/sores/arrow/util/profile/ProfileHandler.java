@@ -3,6 +3,7 @@ package me.sores.arrow.util.profile;
 import com.google.common.collect.Maps;
 import me.sores.arrow.Arrow;
 import me.sores.arrow.util.ArrowUtil;
+import me.sores.arrow.util.tasks.PlayerCleanTask;
 import me.sores.arrow.util.tasks.SaveDataTask;
 import me.sores.impulse.util.PlayerUtil;
 import me.sores.impulse.util.StringUtil;
@@ -47,7 +48,7 @@ public class ProfileHandler extends Handler {
             });
         }
 
-        TaskUtil.runTaskTimer(Arrow.getInstance(), new SaveDataTask(), 20L * 60 * 5, 20L * 60 * 5, true);
+        TaskUtil.runTaskTimer(Arrow.getInstance(), new SaveDataTask(), 20L * 60 * 10, 20L * 60 * 10, true);
     }
 
     @Override
@@ -95,13 +96,7 @@ public class ProfileHandler extends Handler {
         Player player = event.getPlayer();
         ArrowProfile profile = getFrom(player.getUniqueId());
 
-        TaskUtil.runTaskLater(Arrow.getInstance(), () -> {
-            PlayerUtil.gotoSpawn(player);
-            ArrowUtil.resetPlayer(player);
-
-            if(profile.hasKit()) profile.clearKit(player);
-            if(!profile.isScoreboard()) profile.hideScoreboard();
-        }, 2L, false);
+        TaskUtil.runTaskLater(Arrow.getInstance(), new PlayerCleanTask(player, profile), 6L, false);
     }
 
     @EventHandler

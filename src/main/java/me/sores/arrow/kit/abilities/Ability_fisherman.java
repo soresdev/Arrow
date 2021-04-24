@@ -8,9 +8,13 @@ import me.sores.arrow.kit.Kit;
 import me.sores.arrow.kit.excep.AbilityPerformException;
 import me.sores.arrow.kit.wrapper.IFish;
 import me.sores.arrow.kit.wrapper.IProjectileLaunch;
+import me.sores.arrow.util.profile.ArrowProfile;
+import me.sores.arrow.util.profile.ProfileHandler;
+import me.sores.arrow.util.shop.ShopItems;
 import me.sores.impulse.util.LocationUtil;
 import me.sores.impulse.util.MessageUtil;
 import me.sores.impulse.util.StringUtil;
+import me.sores.impulse.util.TaskUtil;
 import me.sores.impulse.util.json.JSONObject;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -50,7 +54,7 @@ public class Ability_fisherman extends Ability implements IFish, IProjectileLaun
     private final String[] abilityUsage = {
             StringUtil.color("&8&m------------------------------------------------"),
             StringUtil.color("&6" + getType().getDisplay() + " Ability's settings: "),
-            StringUtil.color("&e - setCooldown <int> &f- Set the cooldown."),
+            StringUtil.color("&e - setCooldown <long> &f- Set the cooldown."),
             StringUtil.color("&8&m------------------------------------------------"),
     };
 
@@ -77,17 +81,17 @@ public class Ability_fisherman extends Ability implements IFish, IProjectileLaun
             }
 
             Player target = (Player) event.getCaught();
+            ArrowProfile targetProfile = ProfileHandler.getInstance().getFrom(target.getUniqueId());
 
-            //anti fisherman here
+            if(targetProfile.hasShopItem(ShopItems.ANTI_FISHERMAN)){
+                MessageUtil.message(player, ChatColor.RED + target.getName() + " has Anti-Fisherman!");
+                perform(player, this);
+                return;
+            }
 
             target.teleport(player, PlayerTeleportEvent.TeleportCause.ENDER_PEARL);
             target.damage(0, player);
-            new BukkitRunnable(){
-                @Override
-                public void run() {
-                    target.setVelocity(new Vector());
-                }
-            }.runTask(Arrow.getInstance());
+            TaskUtil.runTask(Arrow.getInstance(), () -> target.setVelocity(new Vector()), false);
 
             perform(player, this);
         }
