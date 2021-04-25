@@ -60,7 +60,9 @@ public enum SpawnItems {
         player.getInventory().setItem(0, KIT_SELECTOR.getItem());
 
         if(profile.hasPreviousKit()){
-            player.getInventory().setItem(1, clone(profile, PREVIOUS_KIT.getItem()));
+            Kit kit = KitsHandler.getInstance().valueOf(profile.getPreviousKit());
+
+            if(kit != null) player.getInventory().setItem(1, clone(profile, PREVIOUS_KIT.getItem()));
         }
 
         player.getInventory().setItem(8, SETTINGS.getItem());
