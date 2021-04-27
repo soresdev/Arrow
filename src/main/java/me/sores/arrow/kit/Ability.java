@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import me.sores.arrow.Arrow;
 import me.sores.arrow.kit.excep.AbilityPerformException;
 import me.sores.arrow.kit.wrapper.WrapperItem;
+import me.sores.arrow.util.ArrowUtil;
 import me.sores.arrow.util.IChange;
 import me.sores.arrow.util.profile.ArrowProfile;
 import me.sores.arrow.util.profile.ProfileHandler;
@@ -38,7 +39,7 @@ public abstract class Ability implements JsonSerializable, IChange {
         AbilityHandler.getInstance().registerAbility(this);
     }
 
-    public boolean canPerform(Player player, Ability ability) throws AbilityPerformException { //base this off player state instead todo
+    public static boolean canPerform(Player player, Ability ability) throws AbilityPerformException { //base this off player state instead todo
         if(RegionHandler.getInstance().getRegion(player.getLocation()) != null){
             Region region = RegionHandler.getInstance().getRegion(player.getLocation());
 
@@ -47,6 +48,10 @@ public abstract class Ability implements JsonSerializable, IChange {
         }
 
         return true;
+    }
+
+    public static boolean canAttack(Player player, Player target){
+        return !ArrowUtil.isSpawnArea(player) && !ArrowUtil.isSpawnArea(target);
     }
 
     public void perform(Player player, Ability ability){

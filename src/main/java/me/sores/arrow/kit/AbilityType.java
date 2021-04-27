@@ -1,7 +1,6 @@
 package me.sores.arrow.kit;
 
-import me.sores.arrow.kit.abilities.Ability_fisherman;
-import me.sores.arrow.kit.abilities.Ability_switcher;
+import me.sores.arrow.kit.abilities.*;
 
 /**
  * Created by sores on 4/20/2021.
@@ -9,7 +8,10 @@ import me.sores.arrow.kit.abilities.Ability_switcher;
 public enum AbilityType {
 
     FISHERMAN(Ability_fisherman.class, "Fisherman"),
-    SWITCHER(Ability_switcher.class, "Switcher");
+    SWITCHER(Ability_switcher.class, "Switcher"),
+    RECALL(Ability_recall.class, "Recall"),
+    CRITICAL(Ability_critical.class, "Critical"),
+    SKUNK(Ability_skunk.class, "Skunk");
 
     private Class<? extends Ability> clazz;
     private String display;

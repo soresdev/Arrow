@@ -110,6 +110,35 @@ public class Command_kit extends BaseCommand {
 
                 break;
             }
+
+            case "list":{
+                if(!player.hasPermission("arrow.kit.list")){
+                    MessageUtil.message(player, ChatColor.RED + "You do not have permission to use that command.");
+                    return;
+                }
+
+                StringBuilder builder = new StringBuilder();
+
+                for(Kit kit : KitsHandler.getInstance().getKits()){
+                    if(builder.length() == 0){
+                        if(kit.isPub()){
+                            builder.append(ChatColor.GREEN + kit.getName() + ChatColor.RESET);
+                        }else{
+                            builder.append(ChatColor.RED + kit.getName() + ChatColor.RESET);
+                        }
+                    }else{
+                        if(kit.isPub()){
+                            builder.append(", " + ChatColor.GREEN + kit.getName() + ChatColor.RESET);
+                        }else{
+                            builder.append(", " + ChatColor.RED + kit.getName() + ChatColor.RESET);
+                        }
+                    }
+                }
+
+                MessageUtil.message(player, "&6&lKit List: &7(&cRED = unlisted&7, &aGREEN = public&7)");
+                MessageUtil.message(player, builder.toString());
+                break;
+            }
         }
     }
 

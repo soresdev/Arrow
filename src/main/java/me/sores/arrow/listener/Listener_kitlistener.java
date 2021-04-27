@@ -257,16 +257,16 @@ public class Listener_kitlistener implements Listener {
 
                     if(damagerProfile.isBloodEffect()) damaged.getLocation().getWorld().playEffect(damaged.getLocation(), Effect.STEP_SOUND, Material.REDSTONE_BLOCK);
                 }
+            }
 
-                if(damagedProfile.getSelectedKit() != null){
-                    Kit kit = damagedProfile.getSelectedKit();
+            if(damagerProfile.getSelectedKit() != null){
+                Kit kit = damagerProfile.getSelectedKit();
 
-                    if(kit.getRegisteredAbility() != null){
-                        Ability ability = kit.getRegisteredAbility();
+                if(kit.getRegisteredAbility() != null){
+                    Ability ability = kit.getRegisteredAbility();
 
-                        if(ability.fetchWrapperItems().contains(IEntityDamageByPlayer.class)){
-                            ((IEntityDamageByPlayer) ability).onEntityDamageByPlayer(kit, event, damaged, damager);
-                        }
+                    if(ability.fetchWrapperItems().contains(IEntityDamageByPlayer.class)){
+                        ((IEntityDamageByPlayer) ability).onEntityDamageByPlayer(kit, event, event.getEntity(), damager);
                     }
                 }
             }
