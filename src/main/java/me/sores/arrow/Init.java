@@ -86,6 +86,9 @@ public class Init extends AbstractInit {
         registerCommand("killstreaks", new Command_killstreaks());
         registerCommand("pay", new Command_pay());
         registerCommand("shop", new Command_shop());
+        registerCommand("stats", new Command_stats());
+        registerCommand("worth", new Command_worth());
+        registerCommand("getkit", new Command_getkit());
     }
 
     @Override

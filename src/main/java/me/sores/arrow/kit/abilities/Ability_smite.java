@@ -5,27 +5,30 @@ import me.sores.arrow.kit.AbilityHandler;
 import me.sores.arrow.kit.AbilityType;
 import me.sores.arrow.kit.Kit;
 import me.sores.arrow.kit.excep.AbilityPerformException;
-import me.sores.arrow.kit.wrapper.IEntityDamageByPlayer;
-import me.sores.arrow.util.ArrowUtil;
-import me.sores.impulse.util.ItemUtil;
+import me.sores.arrow.kit.wrapper.IInteract;
+import me.sores.impulse.util.LocationUtil;
 import me.sores.impulse.util.MessageUtil;
 import me.sores.impulse.util.StringUtil;
 import me.sores.impulse.util.json.JSONObject;
 import org.bukkit.ChatColor;
-import org.bukkit.Effect;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 /**
- * Created by sores on 4/26/2021.
+ * Created by sores on 5/1/2021.
  */
-public class Ability_critical extends Ability implements IEntityDamageByPlayer {
+public class Ability_smite extends Ability implements IInteract {
 
-    public Ability_critical() {
-        super(AbilityType.CRITICAL);
+    public Ability_smite() {
+        super(AbilityType.SMITE);
 
         register();
     }
@@ -38,8 +41,8 @@ public class Ability_critical extends Ability implements IEntityDamageByPlayer {
                 StringUtil.color("&eName: &r" + getType().toString()),
                 StringUtil.color("&eDisplay: &r" + getType().getDisplay()),
                 StringUtil.color("&eCooldown: &r" + (getCooldown() == -1 ? "None" : getCooldown())),
-                StringUtil.color("&eChance: &r" + getChance()),
-                StringUtil.color("&eMult: &r" + getMult()),
+                StringUtil.color("&eRadius: &r" + getRadius()),
+                StringUtil.color("&eDamage Mult: &r" + getDamageMult()),
                 StringUtil.color("&8&m------------------------------------------------"),
 
         };
@@ -49,38 +52,57 @@ public class Ability_critical extends Ability implements IEntityDamageByPlayer {
             StringUtil.color("&8&m------------------------------------------------"),
             StringUtil.color("&6" + getType().getDisplay() + " Ability's settings: "),
             StringUtil.color("&e - setCooldown <long> &f- Set the cooldown."),
-            StringUtil.color("&e - setChance <int> &f- Set the chance for a crit strike."),
-            StringUtil.color("&e - setMult <double> &f- Set the mult."),
+            StringUtil.color("&e - setRadius <int> &f- Set the radius."),
+            StringUtil.color("&e - setDamageMult <double> &f- Set the damage mult."),
             StringUtil.color("&8&m------------------------------------------------"),
     };
 
-    private int chance = 5;
-    private double mult = 1.5;
+    private int radius = 5;
+    private double damageMult = 4.0D;
 
     @Override
-    public void onEntityDamageByPlayer(Kit kit, EntityDamageByEntityEvent event, Entity entity, Player damager) {
-        if(entity instanceof Player){
-            Player damaged = (Player) entity;
-            if(damager.getItemInHand() == null || !ItemUtil.isSword(damager.getItemInHand().getType())) return;
-            int rand = ArrowUtil.RAND.nextInt(getChance());
+    public void onPlayerInteract(Kit kit, PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = player.getItemInHand();
+        if(item == null || item.getType() != Material.GOLD_AXE) return;
 
-            if(rand == 2){
+        if(event.getAction() == Action.RIGHT_CLICK_BLOCK){
+            if(event.getClickedBlock() != null){
                 try{
-                    canPerform(damager, this);
+                    canPerform(player, this);
                 }catch (AbilityPerformException ex){
-                    MessageUtil.message(damager, ex.getMessage());
+                    MessageUtil.message(player, ex.getMessage());
                     return;
                 }
 
-                if(AbilityHandler.getInstance().isOnCooldown(damager)){
-                    sendCooldownMessage(damager, this, AbilityHandler.getInstance().getCooldownTime(damager));
+                if(AbilityHandler.getInstance().isOnCooldown(player)){
+                    sendCooldownMessage(player, this, AbilityHandler.getInstance().getCooldownTime(player));
                     return;
                 }
 
-                damaged.damage(event.getDamage() + getMult());
-                damaged.getLocation().getWorld().playEffect(damaged.getLocation(), Effect.STEP_SOUND, Material.REDSTONE_WIRE);
-                MessageUtil.message(damager, ChatColor.GREEN + "You landed a CRITICAL strike on " + damaged.getName() + ".");
-                perform(damager, this);
+                Block block = event.getClickedBlock();
+                Vector blockVector = new Vector();
+                Vector playerVector = new Vector();
+
+                smite(player, block, blockVector, playerVector);
+                perform(player, this);
+            }
+        }
+    }
+
+    private void smite(Player player, Block block, Vector blockVec, Vector playerVec){
+        block.getWorld().strikeLightningEffect(block.getLocation());
+
+        for(Entity entity : LocationUtil.getNearbyEntities(block.getLocation(), getRadius())){
+            Location location = entity.getLocation();
+            LocationUtil.setupVector(block.getX(), block.getY(), block.getZ(), blockVec);
+            LocationUtil.setupVector(location.getX(), location.getY(), location.getZ(), playerVec);
+
+            if(entity instanceof Player && entity != player){
+                if(canAttack(player, (Player) entity)){
+                    ((Player) entity).damage(getDamageMult());
+                    entity.setVelocity(playerVec.subtract(blockVec).normalize().multiply(1.2));
+                }
             }
         }
     }
@@ -113,26 +135,26 @@ public class Ability_critical extends Ability implements IEntityDamageByPlayer {
                 break;
             }
 
-            case "setchance":{
+            case "setradius":{
                 if(args.length <= 1){
                     MessageUtil.message(sender, ChatColor.RED + "You must input a valid int.");
                     return false;
                 }
 
                 try{
-                    int chance = Integer.parseInt(args[1]);
-                    setChance(chance);
+                    int radius = Integer.parseInt(args[1]);
+                    setRadius(radius);
 
                     AbilityHandler.getInstance().save(this);
-                    MessageUtil.message(sender, "&7Updated " + getType().getDisplay() + "'s chance to " + getChance());
+                    MessageUtil.message(sender, "&7Updated " + getType().getDisplay() + "'s radius to " + getRadius() + ".");
                 }catch (NumberFormatException ex){
-                    MessageUtil.message(sender, ChatColor.RED + "You must input a valid int.");
+                    MessageUtil.message(sender, ChatColor.RED + "You must input a proper int.");
                 }
 
                 break;
             }
 
-            case "setmult":{
+            case "setdamagemult":{
                 if(args.length <= 1){
                     MessageUtil.message(sender, ChatColor.RED + "You must input a valid double.");
                     return false;
@@ -140,10 +162,10 @@ public class Ability_critical extends Ability implements IEntityDamageByPlayer {
 
                 try{
                     double mult = Double.parseDouble(args[1]);
-                    setMult(mult);
+                    setDamageMult(mult);
 
                     AbilityHandler.getInstance().save(this);
-                    MessageUtil.message(sender, "&7Updated " + getType().getDisplay() + "'s mult to " + getMult());
+                    MessageUtil.message(sender, "&7Updated " + getType().getDisplay() + "'s damage mult to " + getDamageMult());
                 }catch (Exception ex){
                     MessageUtil.message(sender, ChatColor.RED + "You must input a valid double.");
                 }
@@ -159,36 +181,36 @@ public class Ability_critical extends Ability implements IEntityDamageByPlayer {
         return true;
     }
 
-    public int getChance() {
-        return chance;
+    public int getRadius() {
+        return radius;
     }
 
-    public void setChance(int chance) {
-        this.chance = chance;
+    public void setRadius(int radius) {
+        this.radius = radius;
     }
 
-    public double getMult() {
-        return mult;
+    public double getDamageMult() {
+        return damageMult;
     }
 
-    public void setMult(double mult) {
-        this.mult = mult;
+    public void setDamageMult(double damageMult) {
+        this.damageMult = damageMult;
     }
 
     @Override
     public JSONObject serialize() {
         JSONObject object = new JSONObject();
         object.put("cooldown", getCooldown());
-        object.put("chance", getChance());
-        object.put("mult", getMult());
+        object.put("radius", getRadius());
+        object.put("damagemult", getDamageMult());
         return object;
     }
 
     @Override
     public void deserialize(JSONObject jsonObject) {
         if(jsonObject.has("cooldown")) setCooldown(jsonObject.getLong("cooldown"));
-        if(jsonObject.has("chance")) setChance(jsonObject.getInt("chance"));
-        if(jsonObject.has("mult")) setMult(jsonObject.getDouble("mult"));
+        if(jsonObject.has("radius")) setRadius(jsonObject.getInt("radius"));
+        if(jsonObject.has("damagemult")) setDamageMult(jsonObject.getDouble("damagemult"));
     }
 
 }

@@ -22,15 +22,15 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Created by sores on 4/26/2021.
+ * Created by sores on 5/1/2021.
  */
-public class SkunkRunner extends BukkitRunnable {
+public class HeartBreakRunner extends BukkitRunnable {
 
     private final Player player;
     private int ticks, maxTicks, circleRadius;
-    private final Map<UUID, Long> lastSkunkedMessage = Maps.newHashMap();
+    private final Map<UUID, Long> lastHitMessage = Maps.newHashMap();
 
-    public SkunkRunner(Player player, int maxTicks, int circleRadius) {
+    public HeartBreakRunner(Player player, int maxTicks, int circleRadius) {
         this.player = player;
         this.maxTicks = maxTicks;
         this.circleRadius = circleRadius;
@@ -46,7 +46,7 @@ public class SkunkRunner extends BukkitRunnable {
         }
 
         List<Location> circle = LocationUtil.circle(player.getLocation(), circleRadius, 0, true, true, 0);
-        List<UUID> skunked = Lists.newArrayList();
+        List<UUID> hit = Lists.newArrayList();
 
         TaskUtil.runTask(Arrow.getInstance(), new BukkitRunnable() {
             @Override
@@ -65,26 +65,25 @@ public class SkunkRunner extends BukkitRunnable {
 
                         if(target.getGameMode() == GameMode.CREATIVE || !Ability.canAttack(player, target)) continue;
 
-                        if(!skunked.contains(target.getUniqueId())){
-                            skunked.add(target.getUniqueId());
-                            if(target.hasPotionEffect(PotionEffectType.POISON)) target.removePotionEffect(PotionEffectType.POISON);
+                        if(!hit.contains(target.getUniqueId())){
+                            hit.add(target.getUniqueId());
+                            if(target.hasPotionEffect(PotionEffectType.WITHER)) target.removePotionEffect(PotionEffectType.WITHER);
 
-                            target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 20 * 3, 1));
+                            target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 20 * 3, 1));
 
-                            if(!lastSkunkedMessage.containsKey(target.getUniqueId()) || (lastSkunkedMessage.containsKey(target.getUniqueId()) &&
-                                    (lastSkunkedMessage.get(target.getUniqueId()) + 1500) <= System.currentTimeMillis())){
-                                MessageUtil.message(target, ChatColor.RED + "You have been skunked by " + ChatColor.RED.toString() + ChatColor.BOLD
-                                        + player.getName() + ChatColor.RED + ".");
-                                lastSkunkedMessage.put(target.getUniqueId(), System.currentTimeMillis());
+                            if(!lastHitMessage.containsKey(target.getUniqueId()) || (lastHitMessage.containsKey(target.getUniqueId()) &&
+                                    (lastHitMessage.get(target.getUniqueId()) + 1500) <= System.currentTimeMillis())){
+                                MessageUtil.message(target, ChatColor.RED + "You have been struck by " + ChatColor.RED.toString() + ChatColor.BOLD
+                                        + player.getName() + ChatColor.RED + "'s Heart Break ability.");
+                                lastHitMessage.put(target.getUniqueId(), System.currentTimeMillis());
                             }
                         }
                     }
                 }
 
-                circle.forEach(location -> ParticleEffect.SMOKE_NORMAL.display(0, 0, 0, 0, 1, location, 5));
+                circle.forEach(location -> ParticleEffect.HEART.display(0, 0, 0, 0, 1, location, 5));
             }
         }, false);
-
     }
 
 }

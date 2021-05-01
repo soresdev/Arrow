@@ -11,7 +11,11 @@ public enum AbilityType {
     SWITCHER(Ability_switcher.class, "Switcher"),
     RECALL(Ability_recall.class, "Recall"),
     CRITICAL(Ability_critical.class, "Critical"),
-    SKUNK(Ability_skunk.class, "Skunk");
+    SKUNK(Ability_skunk.class, "Skunk"),
+    JEDI(Ability_jedi.class, "Jedi"),
+    SMITE(Ability_smite.class, "Smite"),
+    SCATTER(Ability_scatter.class, "Scatter"),
+    HEART_BREAK(Ability_heartbreak.class, "Heart Break");
 
     private Class<? extends Ability> clazz;
     private String display;

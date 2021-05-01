@@ -1,31 +1,33 @@
 package me.sores.arrow.kit.abilities;
 
+import me.sores.arrow.Arrow;
 import me.sores.arrow.kit.Ability;
 import me.sores.arrow.kit.AbilityHandler;
 import me.sores.arrow.kit.AbilityType;
 import me.sores.arrow.kit.Kit;
 import me.sores.arrow.kit.excep.AbilityPerformException;
-import me.sores.arrow.kit.wrapper.IEntityDamageByPlayer;
-import me.sores.arrow.util.ArrowUtil;
-import me.sores.impulse.util.ItemUtil;
+import me.sores.arrow.kit.runnable.HeartBreakRunner;
+import me.sores.arrow.kit.runnable.SkunkRunner;
+import me.sores.arrow.kit.wrapper.IInteract;
 import me.sores.impulse.util.MessageUtil;
 import me.sores.impulse.util.StringUtil;
+import me.sores.impulse.util.TaskUtil;
 import me.sores.impulse.util.json.JSONObject;
 import org.bukkit.ChatColor;
-import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 
 /**
- * Created by sores on 4/26/2021.
+ * Created by sores on 5/1/2021.
  */
-public class Ability_critical extends Ability implements IEntityDamageByPlayer {
+public class Ability_heartbreak extends Ability implements IInteract {
 
-    public Ability_critical() {
-        super(AbilityType.CRITICAL);
+    public Ability_heartbreak() {
+        super(AbilityType.HEART_BREAK);
 
         register();
     }
@@ -38,8 +40,8 @@ public class Ability_critical extends Ability implements IEntityDamageByPlayer {
                 StringUtil.color("&eName: &r" + getType().toString()),
                 StringUtil.color("&eDisplay: &r" + getType().getDisplay()),
                 StringUtil.color("&eCooldown: &r" + (getCooldown() == -1 ? "None" : getCooldown())),
-                StringUtil.color("&eChance: &r" + getChance()),
-                StringUtil.color("&eMult: &r" + getMult()),
+                StringUtil.color("&eMax Ticks: &r" + getMaxTicks()),
+                StringUtil.color("&eCircle Radius: &r" + getCircleRadius()),
                 StringUtil.color("&8&m------------------------------------------------"),
 
         };
@@ -49,39 +51,34 @@ public class Ability_critical extends Ability implements IEntityDamageByPlayer {
             StringUtil.color("&8&m------------------------------------------------"),
             StringUtil.color("&6" + getType().getDisplay() + " Ability's settings: "),
             StringUtil.color("&e - setCooldown <long> &f- Set the cooldown."),
-            StringUtil.color("&e - setChance <int> &f- Set the chance for a crit strike."),
-            StringUtil.color("&e - setMult <double> &f- Set the mult."),
+            StringUtil.color("&e - setMaxTicks <int> &f - Set the maxTicks."),
+            StringUtil.color("&e - setCircleRadius <int> &f - Set the circle radius."),
             StringUtil.color("&8&m------------------------------------------------"),
     };
 
-    private int chance = 5;
-    private double mult = 1.5;
+    private int maxTicks = 5, circleRadius = 5;
 
     @Override
-    public void onEntityDamageByPlayer(Kit kit, EntityDamageByEntityEvent event, Entity entity, Player damager) {
-        if(entity instanceof Player){
-            Player damaged = (Player) entity;
-            if(damager.getItemInHand() == null || !ItemUtil.isSword(damager.getItemInHand().getType())) return;
-            int rand = ArrowUtil.RAND.nextInt(getChance());
+    public void onPlayerInteract(Kit kit, PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = player.getItemInHand();
+        if(item == null || item.getType() != Material.MAGMA_CREAM) return;
 
-            if(rand == 2){
-                try{
-                    canPerform(damager, this);
-                }catch (AbilityPerformException ex){
-                    MessageUtil.message(damager, ex.getMessage());
-                    return;
-                }
-
-                if(AbilityHandler.getInstance().isOnCooldown(damager)){
-                    sendCooldownMessage(damager, this, AbilityHandler.getInstance().getCooldownTime(damager));
-                    return;
-                }
-
-                damaged.damage(event.getDamage() + getMult());
-                damaged.getLocation().getWorld().playEffect(damaged.getLocation(), Effect.STEP_SOUND, Material.REDSTONE_WIRE);
-                MessageUtil.message(damager, ChatColor.GREEN + "You landed a CRITICAL strike on " + damaged.getName() + ".");
-                perform(damager, this);
+        if(event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR){
+            try{
+                canPerform(player, this);
+            }catch (AbilityPerformException ex){
+                MessageUtil.message(player, ex.getMessage());
+                return;
             }
+
+            if(AbilityHandler.getInstance().isOnCooldown(player)){
+                sendCooldownMessage(player, this, AbilityHandler.getInstance().getCooldownTime(player));
+                return;
+            }
+
+            TaskUtil.runTaskTimer(Arrow.getInstance(), new HeartBreakRunner(player, getMaxTicks(), getCircleRadius()), 0L, 10L, true);
+            perform(player, this);
         }
     }
 
@@ -113,39 +110,39 @@ public class Ability_critical extends Ability implements IEntityDamageByPlayer {
                 break;
             }
 
-            case "setchance":{
+            case "setmaxticks":{
                 if(args.length <= 1){
                     MessageUtil.message(sender, ChatColor.RED + "You must input a valid int.");
                     return false;
                 }
 
                 try{
-                    int chance = Integer.parseInt(args[1]);
-                    setChance(chance);
+                    int ticks = Integer.parseInt(args[1]);
+                    setMaxTicks(ticks);
 
                     AbilityHandler.getInstance().save(this);
-                    MessageUtil.message(sender, "&7Updated " + getType().getDisplay() + "'s chance to " + getChance());
+                    MessageUtil.message(sender, "&7Updated " + getType().getDisplay() + "'s maxticks to " + getMaxTicks() + ".");
                 }catch (NumberFormatException ex){
-                    MessageUtil.message(sender, ChatColor.RED + "You must input a valid int.");
+                    MessageUtil.message(sender, ChatColor.RED + "You must input a proper int.");
                 }
 
                 break;
             }
 
-            case "setmult":{
+            case "setcircleradius":{
                 if(args.length <= 1){
-                    MessageUtil.message(sender, ChatColor.RED + "You must input a valid double.");
+                    MessageUtil.message(sender, ChatColor.RED + "You must input a valid int.");
                     return false;
                 }
 
                 try{
-                    double mult = Double.parseDouble(args[1]);
-                    setMult(mult);
+                    int radius = Integer.parseInt(args[1]);
+                    setCircleRadius(radius);
 
                     AbilityHandler.getInstance().save(this);
-                    MessageUtil.message(sender, "&7Updated " + getType().getDisplay() + "'s mult to " + getMult());
-                }catch (Exception ex){
-                    MessageUtil.message(sender, ChatColor.RED + "You must input a valid double.");
+                    MessageUtil.message(sender, "&7Updated " + getType().getDisplay() + "'s circle radius to " + getCircleRadius() + ".");
+                }catch (NumberFormatException ex){
+                    MessageUtil.message(sender, ChatColor.RED + "You must input a proper int.");
                 }
 
                 break;
@@ -159,36 +156,36 @@ public class Ability_critical extends Ability implements IEntityDamageByPlayer {
         return true;
     }
 
-    public int getChance() {
-        return chance;
+    public int getMaxTicks() {
+        return maxTicks;
     }
 
-    public void setChance(int chance) {
-        this.chance = chance;
+    public void setMaxTicks(int maxTicks) {
+        this.maxTicks = maxTicks;
     }
 
-    public double getMult() {
-        return mult;
+    public int getCircleRadius() {
+        return circleRadius;
     }
 
-    public void setMult(double mult) {
-        this.mult = mult;
+    public void setCircleRadius(int circleRadius) {
+        this.circleRadius = circleRadius;
     }
 
     @Override
     public JSONObject serialize() {
         JSONObject object = new JSONObject();
         object.put("cooldown", getCooldown());
-        object.put("chance", getChance());
-        object.put("mult", getMult());
+        object.put("maxticks", getMaxTicks());
+        object.put("radius", getCircleRadius());
         return object;
     }
 
     @Override
     public void deserialize(JSONObject jsonObject) {
         if(jsonObject.has("cooldown")) setCooldown(jsonObject.getLong("cooldown"));
-        if(jsonObject.has("chance")) setChance(jsonObject.getInt("chance"));
-        if(jsonObject.has("mult")) setMult(jsonObject.getDouble("mult"));
+        if(jsonObject.has("radius")) setCircleRadius(jsonObject.getInt("radius"));
+        if(jsonObject.has("maxticks")) setMaxTicks(jsonObject.getInt("maxticks"));
     }
 
 }

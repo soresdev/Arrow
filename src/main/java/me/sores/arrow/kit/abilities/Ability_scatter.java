@@ -5,36 +5,29 @@ import me.sores.arrow.kit.AbilityHandler;
 import me.sores.arrow.kit.AbilityType;
 import me.sores.arrow.kit.Kit;
 import me.sores.arrow.kit.excep.AbilityPerformException;
-import me.sores.arrow.kit.wrapper.IInteract;
-import me.sores.arrow.kit.wrapper.IPlayerHitEntityWithProjectile;
-import me.sores.arrow.kit.wrapper.IProjectileLaunch;
-import me.sores.arrow.util.profile.ArrowProfile;
-import me.sores.arrow.util.profile.ProfileHandler;
-import me.sores.arrow.util.shop.ShopItems;
+import me.sores.arrow.kit.wrapper.IPlayerInteractEntity;
 import me.sores.impulse.util.MessageUtil;
 import me.sores.impulse.util.StringUtil;
 import me.sores.impulse.util.json.JSONObject;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
-import org.bukkit.entity.Snowball;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Created by sores on 4/20/2021.
+ * Created by sores on 5/1/2021.
  */
-public class Ability_switcher extends Ability implements IPlayerHitEntityWithProjectile, IInteract, IProjectileLaunch {
+public class Ability_scatter extends Ability implements IPlayerInteractEntity {
 
-    public Ability_switcher() {
-        super(AbilityType.SWITCHER);
+    public Ability_scatter() {
+        super(AbilityType.SCATTER);
 
         register();
     }
@@ -60,59 +53,35 @@ public class Ability_switcher extends Ability implements IPlayerHitEntityWithPro
     };
 
     @Override
-    public void onPlayerInteract(Kit kit, PlayerInteractEvent event) {
+    public void onPlayerInteractEntity(Kit kit, PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
-        if(event.getItem() == null || event.getItem().getType() != Material.SNOW_BALL) return;
+        ItemStack item = player.getItemInHand();
+        if(item == null || item.getType() != Material.ENCHANTMENT_TABLE) return;
 
-        if(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
+        if(event.getRightClicked() instanceof Player){
             try{
                 canPerform(player, this);
             }catch (AbilityPerformException ex){
                 MessageUtil.message(player, ex.getMessage());
-                event.setCancelled(true);
-                player.updateInventory();
                 return;
             }
 
             if(AbilityHandler.getInstance().isOnCooldown(player)){
                 sendCooldownMessage(player, this, AbilityHandler.getInstance().getCooldownTime(player));
-                event.setCancelled(true);
-                player.updateInventory();
-            }
-        }
-    }
-
-    @Override
-    public void onPlayerHitEntityWithProjectile(Kit kit, EntityDamageByEntityEvent event, Projectile projectile, Player shooter, Entity hit) {
-        if(projectile instanceof Snowball && !projectile.hasMetadata("fakehook") && hit instanceof Player){
-            ArrowProfile hitProfile = ProfileHandler.getInstance().getFrom(hit.getUniqueId());
-            Location hitLoc = hit.getLocation();
-
-            if(hitProfile.hasShopItem(ShopItems.ANTI_SWITCHER)){
-                MessageUtil.message(shooter, ChatColor.RED + hit.getName() + " has Anti-Switcher!");
                 return;
             }
 
-            if(hit == shooter){
-                event.setCancelled(true);
-                return;
-            }
+            Player target = (Player) event.getRightClicked();
 
-            event.setDamage(0);
-            event.getDamager().remove();
+            List<ItemStack> contents = Arrays.asList(target.getInventory().getContents());
+            Collections.shuffle(contents);
 
-            hit.teleport(shooter.getLocation());
-            shooter.teleport(hitLoc);
+            target.getInventory().setContents(contents.toArray(new ItemStack[]{}));
+            target.updateInventory();
+            target.getWorld().playSound(target.getLocation(), Sound.WOOD_CLICK, 1f, 1f);
+            MessageUtil.message(target, ChatColor.RED + "Your inventory was scattered by " + player.getName() + ".");
 
-            MessageUtil.message(shooter, "&7You have switched places with &a" + hit.getName() + ".");
-            MessageUtil.message(hit, "&7You have been switched by &a" + shooter.getName() + ".");
-        }
-    }
-
-    @Override
-    public void onProjectileLaunch(Kit kit, ProjectileLaunchEvent event, Player shooter) {
-        if(event.getEntity() instanceof Snowball){
-            perform(shooter, this);
+            perform(player, this);
         }
     }
 

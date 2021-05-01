@@ -127,8 +127,13 @@ public class Kit {
     }
 
     public void setRegisteredAbility(Ability registeredAbility) {
-        if(registeredAbility == null) KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".ability", null);
         this.registeredAbility = registeredAbility;
+
+        if(registeredAbility == null){
+            KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".ability", null);
+            return;
+        }
+
         KitsHandler.getInstance().makeConfigChange("kits." + getName() + ".ability", registeredAbility.getType().toString());
     }
 
