@@ -17,7 +17,11 @@ Arrow is based on a 1.8.8 Paperspigot
 - MongoDB Data Storage
 - In-Game Kit Creation System
 - Custom Abilities
-
+- Killstreaks
+- Cosmetics (ChatColor & Prefixes)
+- In-Game Item shop
+- Scoreboard Themes (Changes color scheme of Scoreboard)
+- KillWorth system
 ----
 ### Depends
 Arrow depends on my Spigot commons lib [Impulse](https://github.com/soresdev/Impulse/releases)\
